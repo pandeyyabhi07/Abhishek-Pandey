@@ -1,18 +1,19 @@
-import transporter from "../config/email.js";
+import transporter from '../config/emailConfig.js';
 
 export const sendEmail = async (to, subject, html) => {
   try {
     const mailOptions = {
-      from: `"MyApp" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_USER,
       to,
       subject,
       html,
     };
 
-    await transporter.sendMail(mailOptions);
-    console.log(" Email sent successfully");
+    const result = await transporter.sendMail(mailOptions);
+    console.log(` Email sent to: ${to}`);
+    return result;
   } catch (error) {
-    console.error(" Email sending failed:", error.message);
-    throw new Error("Email not sent");
+    console.error('Email sending failed:', error);
+    throw new Error(`Failed to send email: ${error.message}`);
   }
 };

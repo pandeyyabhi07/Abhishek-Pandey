@@ -15,18 +15,16 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Email is required'],
       unique: true,
       lowercase: true,
-     
     },
     password: {
       type: String,
       required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters'],
-      select: false, 
+      select: false,
     },
     profileImage: {
       type: String,
       default: null,
-    
     },
     isVerified: {
       type: Boolean,
@@ -41,16 +39,20 @@ const userSchema = new mongoose.Schema(
     verificationCodeExpires: {
       type: Date,
       default: function () {
-        return Date.now() + 24 * 60 * 60 * 1000; 
+        return Date.now() + 24 * 60 * 60 * 1000;
       },
     },
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-
+  
   try {
     const salt = await bcrypt.genSalt(12);
     this.password = await bcrypt.hash(this.password, salt);
@@ -67,6 +69,9 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 userSchema.methods.isVerificationCodeExpired = function () {
   return Date.now() > this.verificationCodeExpires;
 };
+
+userSchema.index({ email: 1 });
+userSchema.index({ verificationCode: 1 });
 
 const User = mongoose.model('User', userSchema);
 export default User;
